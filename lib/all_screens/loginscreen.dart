@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:uber/all_wigets/progressDialog.dart';
 import 'package:uber/main.dart';
 import 'file:///D:/Project/FlutterProject/uber/lib/all_screens/registration.dart';
 import 'mainscreen.dart';
 import 'package:toast/toast.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:uber/all_wigets/progressDialog.dart';
 
 class loginScreen extends StatelessWidget {
   static const String idScreen = "loginScreen";
@@ -154,22 +154,27 @@ class loginScreen extends StatelessWidget {
 
   final User user = FirebaseAuth.instance.currentUser;
   void loginAuthenticateUser(BuildContext context) async {
-    // showDialog(
-    //   context: context,
-    //   barrierDismissible: false,
-    //   builder: (BuildContext context) {
-    //     return progressDialog(
-    //       message: "Registering, please wait...",
-    //     );
-    //   },
-    // );
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (BuildContext context) {
+        return progressDialog(
+          message: "Authenticating, please wait...",
+        );
+      },
+    );
     try {
       UserCredential userCredential =
           await FirebaseAuth.instance.signInWithEmailAndPassword(
         email: emailTextEditingController.text,
         password: passwordTextEditingController.text,
       );
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => mainScreen()),
+      );
     } on FirebaseAuthException catch (e) {
+      Navigator.pop(context);
       if (e.code == 'user-not-found') {
         Toast.show("No user found for that email", context,
             duration: Toast.LENGTH_SHORT, gravity: Toast.CENTER);
@@ -181,15 +186,13 @@ class loginScreen extends StatelessWidget {
         userRef.child(user.uid).once().then(
               (value) => (DataSnapshot snap) {
                 if (snap.value != null) {
-                  Navigator.pushNamedAndRemoveUntil(
-                      context, mainScreen.idScreen, (route) => false);
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => mainScreen()),
+                  );
                 }
               },
             );
-      } else {
-        Navigator.pop(context);
-        Toast.show("Error occured can't be signed in...", context,
-            duration: Toast.LENGTH_SHORT, gravity: Toast.CENTER);
       }
     }
   }
